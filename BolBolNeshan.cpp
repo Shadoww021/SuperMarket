@@ -1,0 +1,208 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class Product {
+public:
+    Product(int id, string name, double price, int quantity)
+        : id_(id), name_(name), price_(price), quantity_(quantity) {}
+
+    int id() const { return id_; }
+    string name() const { return name_; }
+    double price() const { return price_; }
+    int quantity() const { return quantity_; }
+
+    void setQuantity(int quantity) { quantity_ = quantity; }
+
+protected:
+    int id_;
+    string name_;
+    double price_;
+    int quantity_;
+};
+
+class PerishableProduct : public Product {
+public:
+    PerishableProduct(int id, string name, double price, int quantity, string expirationDate)
+        : Product(id, name, price, quantity), expirationDate_(expirationDate) {}
+
+    string expirationDate() const { return expirationDate_; }
+
+private:
+    string expirationDate_;
+};
+
+class ImPerishableProduct : public Product {
+public:
+    ImPerishableProduct(int id, string name, double price, int quantity)
+        : Product(id, name, price, quantity) {}
+};
+
+class Order {
+public:
+    void addProduct(const Product& product, int quantity) {
+        system("cls");
+        for (auto& item : products_) {
+            if (item.first.id() == product.id()) {
+                item.second += quantity;
+                return;
+            }
+        }
+        products_.push_back({product, quantity});
+    }
+
+    void display() const {
+        system("cls");
+        for (const auto& product : products_) {
+            cout << "Product: " << product.first.name()
+                 << ", Quantity: " << product.second
+                 << ", Price($): " << product.first.price() * product.second << endl
+                 << "-------------------------------" << endl;
+        }
+    }
+
+private:
+    vector<pair<Product, int>> products_;
+};
+
+class Store {
+public:
+    void addProduct(const Product& product) {
+        system("cls");
+        for (const auto& item : products_) {
+            if (item.id() == product.id()) {
+                cout << "Product with this ID already exists." << endl;
+                return;
+            }
+        }
+        products_.push_back(product);
+    }
+
+    void createOrder() {
+        system("cls");
+        Order order;
+        int productId;
+        cout << "Enter product ID (0 to finish): ";
+        cin >> productId;
+
+        while (productId != 0) {
+            int index = findProduct(productId);
+            if (index != -1) {
+                int quantity;
+                cout << "Enter product quantity: ";
+                cin >> quantity;
+                if (quantity <= products_[index].quantity()) {
+                    order.addProduct(products_[index], quantity);
+                    products_[index].setQuantity(products_[index].quantity() - quantity);
+                } else {
+                    cout << "Not enough quantity available." << endl;
+                }
+            } else {
+                cout << "Product not found." << endl;
+            }
+            cout << "Enter product ID (0 to finish): ";
+            cin >> productId;
+        }
+
+        orders_.push_back(order);
+    }
+
+    void displayProducts() const {
+        system("cls");
+        for (const auto& product : products_) {
+            cout << "ID: " << product.id()
+                 << ", Name: " << product.name()
+                 << ", Price($): " << product.price()
+                 << ", Quantity: " << product.quantity() << endl
+                 << "-------------------------------" << endl;
+        }
+    }
+
+    void displayOrders() const {
+        system("cls");
+        for (const auto& order : orders_) {
+            cout << "Order:" << endl;
+            order.display();
+        }
+    }
+
+private:
+    vector<Product> products_;
+    vector<Order> orders_;
+
+    int findProduct(int id) const {
+        for (size_t i = 0; i < products_.size(); ++i) {
+            if (products_[i].id() == id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+};
+
+int main() {
+    Store store;
+
+while (true) {
+        cout << "Super Market BolBol Neshan!!";
+        cout << "\n1. Add new product\n"
+             << "2. Display all products\n"
+             << "3. Create new order\n"
+             << "4. Display all orders\n"
+             << "5. Exit\n"
+             << "Enter your choice: ";
+
+        int choice;
+        cin >> choice;
+
+        switch (choice) {
+        case 1: {
+            string name, expirationDate;
+            int id, quantity;
+            double price;
+            char productType;
+
+            cout << "Enter product ID: ";
+            cin >> id;
+            cout << "Enter product name: ";
+            cin.ignore();
+            getline(cin, name);
+            cout << "Enter product price($): ";
+            cin >> price;
+            cout << "Enter product quantity: ";
+            cin >> quantity;
+            cout << "Enter product type (P/p for perishable, I/i for imperishable): ";
+            cin >> productType;
+
+            if (productType == 'P', productType == 'p') {
+                cout << "Enter expiration date (DD,MM,YY): ";
+                cin.ignore();
+                getline(cin, expirationDate);
+                store.addProduct(PerishableProduct(id, name, price, quantity, expirationDate));
+            } else if (productType == 'I', productType == 'i') {
+                store.addProduct(ImPerishableProduct(id, name, price, quantity));
+            } else {
+                cout << "Invalid product type." << endl;
+            }
+            break;
+        }
+        case 2:
+            store.displayProducts();
+            break;
+        case 3:
+            store.createOrder();
+            break;
+        case 4:
+            store.displayOrders();
+            break;
+        case 5:
+            cout << "Exiting....";
+            return 0;
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+        }
+    }
+
+    return 0;
+}
